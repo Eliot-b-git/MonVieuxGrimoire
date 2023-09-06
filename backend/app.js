@@ -4,12 +4,11 @@ const mongoose = require('mongoose')
 const path = require('path')
 const stuffRoutes = require('./routes/book')
 const userRoutes = require('./routes/user')
-// Utilisez bodyParser ici
 
 // Connexion à MongoDB
 mongoose
   .connect(
-    'mongodb+srv://DaDyRaVeN:Maude201.@p7.ptr1dy9.mongodb.net/?retryWrites=true&w=majority',
+    'mongodb+srv://DaDyRaVeN:motsdepasse@p7.ptr1dy9.mongodb.net/?retryWrites=true&w=majority',
     { useNewUrlParser: true, useUnifiedTopology: true },
   )
   .then(() => console.log('Connexion à MongoDB réussie !'))

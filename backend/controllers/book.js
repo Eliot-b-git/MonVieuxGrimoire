@@ -3,6 +3,7 @@ const multer = require('multer')
 const upload = multer()
 
 exports.createBook = (req, res, next) => {
+  console.log('Create Book Route Hit')
   const bookObject = JSON.parse(req.body.book)
   delete bookObject._id
   delete bookObject._userId // Permet que personne puisse envoie une req mais avec un autre userId

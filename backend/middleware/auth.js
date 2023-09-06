@@ -18,14 +18,21 @@ const jwt = require('jsonwebtoken')
 
 module.exports = (req, res, next) => {
   try {
+    console.log('Headers:', req.headers)
+
     const token = req.headers.authorization.split(' ')[1]
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET')
     const userId = decodedToken.userId
+    console.log('Token:', token)
+    console.log('Decoded Token:', decodedToken)
+    console.log('User ID:', userId)
+
     req.auth = {
       userId: userId,
     }
     next()
   } catch (error) {
-    res.status(401).json({ error })
+    console.log('Middleware Error:', error)
+    res.status(401).json({ error: error.message })
   }
 }
