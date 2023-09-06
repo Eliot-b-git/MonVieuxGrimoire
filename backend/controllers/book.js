@@ -1,18 +1,26 @@
 const Book = require('../models/Books')
+const multer = require('multer')
+const upload = multer()
 
 exports.createBook = (req, res, next) => {
-  console.log('Received data: ', req.body)
-  console.log(req.body)
-  delete req.body._id
+  const bookObject = JSON.parse(req.body.book)
+  delete bookObject._id
+  delete bookObject._userId // Permet que personne puisse envoie une req mais avec un autre userId
   const book = new Book({
-    ...req.body,
+    ...bookObject,
+    userId: req.auth.userId,
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${
+      req.file.filename
+    }`,
   })
+
   book
     .save()
-    .then(() => res.status(201).json({ message: 'Objet enregistré !' }))
+    .then(() => {
+      res.status(201).json({ message: 'Objet enregistré !' })
+    })
     .catch((error) => {
-      console.error('Il y a eu une erreur :', error)
-      res.status(400).json({ error: error.message })
+      res.status(400).json({ error })
     })
 }
 
