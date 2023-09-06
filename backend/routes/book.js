@@ -6,7 +6,7 @@ const multer = require('../middleware/multer-config')
 
 const stuffCtrl = require('../controllers/book')
 
-router.get('/', auth, stuffCtrl.getAllBook)
+router.get('/', stuffCtrl.getAllBook)
 
 router.post('/', auth, multer, stuffCtrl.createBook)
 
