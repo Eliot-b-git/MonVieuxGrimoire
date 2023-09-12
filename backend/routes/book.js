@@ -10,6 +10,10 @@ router.get('/', stuffCtrl.getAllBook)
 
 router.post('/', auth, multer, stuffCtrl.createBook)
 
+router.post('/:id/rating', auth, stuffCtrl.rateBook)
+
+router.get('/bestrating', stuffCtrl.getBestRatingBooks)
+
 router.get('/:id', stuffCtrl.getOneBook)
 
 router.put('/:id', auth, multer, stuffCtrl.modifyBook)
