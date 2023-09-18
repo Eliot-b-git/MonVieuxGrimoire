@@ -67,16 +67,76 @@ exports.createBook = async (req, res, next) => {
         })
 }
 
-exports.modifyBook = (req, res, next) => {
-    Book.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+exports.modifyBook = async (req, res, next) => {
+    const bookObject = JSON.parse(req.body.book)
+
+    // Récupérer l'ancienne image à partir de la base de données
+    const book = await Book.findOne({ _id: req.params.id })
+
+    const oldImageUrl = book.imageUrl
+    const oldImagePath = oldImageUrl.replace(
+        `${req.protocol}://${req.get('host')}/`,
+        '',
+    )
+
+    // Supprimer l'ancienne image du système de fichiers
+    fs.unlink(oldImagePath, (err) => {
+        if (err) {
+            console.error(
+                "Erreur lors de la suppression de l'ancienne image",
+                err,
+            )
+        }
+    })
+
+    // Chemin de l'image d'origine
+    const originalImagePath = req.file.path
+
+    // Chemin de l'image redimensionnée et convertie
+    const newImagePath = 'images/' + req.file.filename + req.timestamp + '.webp'
+
+    // Redimensionner et convertir l'image
+    try {
+        await sharp(originalImagePath).resize(2000).webp().toFile(newImagePath)
+        bookObject.imageUrl = `${req.protocol}://${req.get(
+            'host',
+        )}/${newImagePath}`
+    } catch (err) {
+        console.error(err)
+        return res
+            .status(500)
+            .json({ error: "Erreur lors du redimensionnement de l'image" })
+    }
+
+    // Supprimer l'image d'origine
+    fs.unlink(originalImagePath, (err) => {
+        if (err) {
+            console.error(
+                "Erreur lors de la suppression de l'image d'origine",
+                err,
+            )
+            return res
+                .status(500)
+                .json({
+                    error: "Erreur lors de la suppression de l'image d'origine",
+                })
+        }
+    })
+
+    Book.updateOne(
+        { _id: req.params.id },
+        { ...bookObject, _id: req.params.id },
+    )
         .then(() => res.status(200).json({ message: 'Objet modifié !' }))
         .catch((error) => res.status(400).json({ error }))
 }
 
 //
 exports.deleteBook = (req, res, next) => {
+    // Recherche du livre par son ID dans la base de données
     Book.findOne({ _id: req.params.id })
         .then((book) => {
+            // Vérification de l'autorisation : assurez-vous que l'utilisateur qui tente de supprimer le livre en est bien le propriétaire
             if (book.userId != req.auth.userId) {
                 res.status(401).json({ message: 'Not authorized' })
             } else {

@@ -7,7 +7,7 @@
 //     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET') // decoder le token
 //     const userId = decodedToken.userId
 //     req.auth = {
-//       userId: userId,
+//       userId: userId, vérifie que sa soit bien le bon userId
 //     }
 //     next()
 //   } catch (error) {
@@ -17,26 +17,29 @@
 const jwt = require('jsonwebtoken')
 
 module.exports = (req, res, next) => {
-  try {
-    console.log('Headers:', req.headers)
+    try {
+        // Vérification de la présence du header `authorization`
+        if (!req.headers.authorization) {
+            return res.status(401).json({ error: 'No token provided' })
+        }
 
-    if (!req.headers.authorization) {
-      return res.status(401).json({ error: 'No token provided' })
+        // Extrait le token du header `authorization`
+        // Le format attendu est "Bearer [token]"
+        const token = req.headers.authorization.split(' ')[1]
+
+        // Vérifie la validité du token avec la clé secrète
+        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET')
+
+        // Extrait l'ID de l'utilisateur du token décodé
+        const userId = decodedToken.userId
+
+        req.auth = {
+            userId: userId,
+        }
+
+        next()
+    } catch (error) {
+        console.log('Middleware Error:', error)
+        res.status(401).json({ error: error.message })
     }
-    const token = req.headers.authorization.split(' ')[1]
-
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET')
-    const userId = decodedToken.userId
-    console.log('Token:', token)
-    console.log('Decoded Token:', decodedToken)
-    console.log('User ID:', userId)
-
-    req.auth = {
-      userId: userId,
-    }
-    next()
-  } catch (error) {
-    console.log('Middleware Error:', error)
-    res.status(401).json({ error: error.message })
-  }
 }
